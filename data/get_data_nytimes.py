@@ -6,7 +6,7 @@ import random
 api_key = "vvfmGQCTjP0bmz8DpXBYSq8kHVD8odrn"
 url = "https://api.nytimes.com/svc/archive/v1/{year}/{month}.json"
 
-for year in range(2019, 2022):
+for year in range(2019, 2023):
     month=1
     while month <13:
         filename = f"news_{year}_{month}.json"
