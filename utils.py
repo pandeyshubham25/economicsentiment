@@ -39,16 +39,17 @@ class NewsDataset(Dataset):
 
         #if news pickle file name has been provided
         if pickled_news_file is not None:
-            with open(pickled_news_file) as f:
+            with open(pickled_news_file, 'rb') as f:
                 self.all_news=pickle.load(f)
         else:
             self.all_news = getFilteredNews(start, end, lemma=lemma, stemming = stemming, stopw = stopw, jsonFile = "data/newsAll.json", keywords = keywords)
             if pickle_news:
                 with open("data/"+start+"_to_"+end+".pickle", 'wb') as f:
                     pickle.dump(self.all_news, f)
+        
     
     def __len__(self):
-        return len(self.survey_df)
+        return len(self.survey_df)-12
 
     def __getitem__(self, idx):
         X = {}
@@ -67,7 +68,16 @@ class NewsDataset(Dataset):
         return (X,y)
 
 #teting code
+
 '''
-obj = NewsDataset()
-print(obj.__getitem__(0))
+obj = NewsDataset(pickled_news_file="data/2019-01-01_to_2022-12-31.pickle", news_window=4)
+print(obj.__len__())
+#exit()
+for i in range(obj.__len__()):
+    X,y = obj.__getitem__(i)
+    print(X["news"])
+    exit()
+
 '''
+
+
