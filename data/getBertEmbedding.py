@@ -25,3 +25,19 @@ def getBertEmbedding(sentence):
 
 
 
+'''
+forward(X):
+    bert_result = []
+    i=0
+    while i<len(X):
+        lenght = 0
+        current_sentence=""
+        while(length<bert_maximum):
+            current_sentence+=X[i]
+            i+=1
+        bert_result.append(self.bert(current_sentence))
+
+    rnn_out = self.rnn(bert_result)
+    ann_out = self.ann(rnn_out)
+
+'''

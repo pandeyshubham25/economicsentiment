@@ -24,3 +24,6 @@ for year in range(2019, 2023):
             else:
                 print(f"Error: {response.status_code}")
             time.sleep(random.randint(12, 17))
+
+
+
