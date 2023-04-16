@@ -116,12 +116,12 @@ def contains_keyword(s, keywords):
     return False
 
 def getFilteredNews(startDate, endDate, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = []):
-
+    # print("################## starting to read news ##################")
     finalOutput = {}
     with open(jsonFile, 'r') as f:
         data = json.load(f)
     
-    
+    # print("################## finished reading news ##################")
     for newsDate in data:
         if startDate <= newsDate <= endDate:
             key = newsDate[:-3]

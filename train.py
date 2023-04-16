@@ -12,7 +12,7 @@ np.random.seed(577)
 
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split
-from sklearn.metrics import mean_squared_error, r2_score
+# from sklearn.metrics import mean_squared_error, r2_score
 from arch import *
 import os
 from utils import *
@@ -29,7 +29,7 @@ torch_device = torch.device("cpu")
 
 
 if __name__ == "__main__":
-    dataloader = NewsDataset(pickled_news_file="data/2019-01-01_to_2022-12-31.pickle", news_window=2)
+    dataloader = NewsDataset(news_window=2)
 
     # print(newsData)
     model = BERT_RNN_FC_Model()

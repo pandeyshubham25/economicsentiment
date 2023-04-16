@@ -23,11 +23,25 @@ class BERT_RNN_FC_Model(nn.Module):
         
     def forward(self, input_ids, attention_mask):
         # Pass input through BERT model to get output vectors
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        bert_output = outputs.last_hidden_state
-        
+        start = 0
+        end = 512
+        bert_outputs = []
+        while end < len(input_ids):
+            
+            currInput_ids = input_ids[start:end]
+            start += 512
+            end += 512
+            outputs = self.bert(input_ids=currInput_ids, attention_mask=attention_mask)
+            bert_outputs.append(outputs.last_hidden_state)
+        if start < len(input_ids):
+            currInput_ids = input_ids[start:]
+            outputs = self.bert(input_ids=currInput_ids, attention_mask=attention_mask)
+            bert_outputs.append(outputs.last_hidden_state)
+            
+        # bert_output = outputs.last_hidden_state
+        rnn_input = torch.stack(bert_outputs)
         # Pass output vectors through RNN layer
-        rnn_output, _ = self.rnn(bert_output)
+        rnn_output, _ = self.rnn(rnn_input)
         
         # Pass final output of RNN layer through fully connected layer to get prediction
         prediction = self.fc(rnn_output[:, -1, :])
