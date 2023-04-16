@@ -5,11 +5,17 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 import pickle
+from torch import tensor
 
 class NewsDataset(Dataset):
 
     #if idx is 0, it gives 2020-01 (indexes can be negative too, in that case we go to 2019)
     #count is the number of months to include starting from idx going up
+    '''
+    keywords_dict = {}
+    keywords_dict["GOVT"] = ["governemnt", "trump", "biden"]
+    '''
+    
     def get_month_strings(self, idx, count):
         base = "2020-01"
         dt = datetime.strptime(base + '-01', '%Y-%m-%d')
@@ -65,7 +71,7 @@ class NewsDataset(Dataset):
             X["news"]+=self.all_news[month]
 
         y = self.survey_df.iloc[idx][self.metric]
-        return (X,y)
+        return (X,tensor(y))
 
 #teting code
 

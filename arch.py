@@ -26,26 +26,27 @@ class BERT_RNN_FC_Model(nn.Module):
         start = 0
         end = 512
         bert_outputs = []
-        while end < len(input_ids):
-            
-            currInput_ids = input_ids[start:end]
+        attention_mask = attention_mask[:,:512]
+        no_words = input_ids.size()[1]
+        while end < no_words:
+            currInput_ids = input_ids[:,start:end]
             start += 512
             end += 512
             outputs = self.bert(input_ids=currInput_ids, attention_mask=attention_mask)
-            bert_outputs.append(outputs.last_hidden_state)
-        if start < len(input_ids):
-            currInput_ids = input_ids[start:]
+            bert_outputs.append(outputs[1])
+        
+        if start < no_words:
+            currInput_ids = input_ids[:,start:end]
+            attention_mask = attention_mask[:,:len(currInput_ids)]
             outputs = self.bert(input_ids=currInput_ids, attention_mask=attention_mask)
-            bert_outputs.append(outputs.last_hidden_state)
-            
+            bert_outputs.append(outputs[1])
+        
         # bert_output = outputs.last_hidden_state
-        rnn_input = torch.stack(bert_outputs)
+        rnn_input = torch.stack(bert_outputs).squeeze(0)
         # Pass output vectors through RNN layer
         rnn_output, _ = self.rnn(rnn_input)
-        
         # Pass final output of RNN layer through fully connected layer to get prediction
-        prediction = self.fc(rnn_output[:, -1, :])
-        
+        prediction = self.fc(rnn_output[-1, :, :])        
         return prediction
 
 # def getBertEmbedding(sentence):

@@ -29,7 +29,7 @@ torch_device = torch.device("cpu")
 
 
 if __name__ == "__main__":
-    dataloader = NewsDataset(news_window=2)
+    dataloader = NewsDataset(pickled_news_file='data/2019-01-01_to_2022-12-31.pickle', news_window=2)
 
     # print(newsData)
     model = BERT_RNN_FC_Model()
@@ -47,13 +47,14 @@ if __name__ == "__main__":
             sentence = ""
             for news,_ in X["news"]:
                 sentence += news + " "
-            
+            #sentence = sentence[:5000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
             outputs = model.forward(indexed_tokens, segments_ids)
             loss = criterion(outputs.squeeze(), y.float()) ## missing label here
             loss.backward()
             optimizer.step()
-        print(loss)
+            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+              .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
         '''
         all_labels_test = []    
         all_output_test = []
