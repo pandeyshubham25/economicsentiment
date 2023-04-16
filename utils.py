@@ -49,8 +49,11 @@ class NewsDataset(Dataset):
                 self.all_news=pickle.load(f)
         else:
             self.all_news = getFilteredNews(start, end, lemma=lemma, stemming = stemming, stopw = stopw, jsonFile = "data/newsAll.json", keywords = keywords)
-            if pickle_news:
+            if pickle_news and keywords == []:
                 with open("data/"+start+"_to_"+end+".pickle", 'wb') as f:
+                    pickle.dump(self.all_news, f)
+            elif pickle_news and keywords != []:
+                with open("data/"+start+"_to_"+end+"_" + keywords[0] + ".pickle", 'wb') as f:
                     pickle.dump(self.all_news, f)
         
     
@@ -74,16 +77,23 @@ class NewsDataset(Dataset):
         return (X,tensor(y))
 
 #teting code
+keywords_dict = {}
+keywords_dict["GOVT"] = ["governemnt", "trump", "biden", "election", "president", "congress", "senate", "democrat", "republican", "political party", "political parties", "political ideology", "political beliefs", "political views", "political views", "political system", \
+                        "political system", "hilary", "clinton", "bernie", "sanders", "democratic", "republican", "democratic party", "republican party", "democratic nominee", "republican nominee", "democrat", "republican", "dem"]
+keywords_dict["HOM"] = ["home", "house", "mortgage", "rent", "interest rates", "housing market", "housing prices", "housing inventory", "housing affordability", "housing supply", "housing demand", "housing shortage", "housing crisis", "housing bubble", "housing crash"]
+keywords_dict["PAGO"] = ["jobs", "inflation", "unemployment", "employment", "job market", "job growth", "job creation", "job loss", "job losses", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings"]    
 
-'''
-obj = NewsDataset(pickled_news_file="data/2019-01-01_to_2022-12-31.pickle", news_window=4)
-print(obj.__len__())
-#exit()
-for i in range(obj.__len__()):
-    X,y = obj.__getitem__(i)
-    print(X["news"])
-    exit()
+# NewsDataset(news_window=4)
 
-'''
+
+# obj = NewsDataset(pickled_news_file="data/2019-01-01_to_2022-05-31.pickle", news_window=4)
+# print(obj.__len__())
+# #exit()
+# for i in range(obj.__len__()):
+#     X,y = obj.__getitem__(i)
+#     # print(X["news"])
+#     exit()
+
+
 
 

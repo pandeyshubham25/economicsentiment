@@ -29,7 +29,8 @@ torch_device = torch.device("cpu")
 
 
 if __name__ == "__main__":
-    dataloader = NewsDataset(pickled_news_file='data/2019-01-01_to_2022-12-31.pickle', news_window=2)
+    dataloader = NewsDataset(pickled_news_file='data/2019-01-01_to_2022-05-31.pickle', news_window=2)
+    test_dataloader = NewsDataset(pickled_news_file='data/2022-06-01_to_2022-12-31.pickle', news_window=2)
 
     # print(newsData)
     model = BERT_RNN_FC_Model()
@@ -55,16 +56,17 @@ if __name__ == "__main__":
             optimizer.step()
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
               .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
-        '''
+
         all_labels_test = []    
         all_output_test = []
-        for i, (sentence, time, label) in enumerate(test_dataloader):
+        for i in range(test_dataloader.__len__()):
+            X,label = test_dataloader.__getitem__(i)
             all_labels_test.append(label.item())
             indexed_tokens, segments_ids = tokenIdx(sentence)
             o = model(indexed_tokens, segments_ids)
             all_output_test.append(o[0].item())
-        print("R2 score: ", r2_score(all_labels_test, all_output_test))
-        '''
+        # print("R2 score: ", r2_score(all_labels_test, all_output_test))
+
         
 
         
