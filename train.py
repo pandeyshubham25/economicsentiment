@@ -29,8 +29,14 @@ torch_device = torch.device("cpu")
 
 
 if __name__ == "__main__":
-    dataloader = NewsDataset(pickled_news_file='data/2019-01-01_to_2022-05-31.pickle', news_window=2)
-    test_dataloader = NewsDataset(pickled_news_file='data/2022-06-01_to_2022-12-31.pickle', news_window=2)
+    #demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
+    demographics = ['SEX']
+    dataloader = NewsDataset(pickled_news_file='data/2020-01-01_to_2022-05-31.pickle', news_window=2,
+                             demographics=demographics)
+    test_dataloader = NewsDataset(pickled_news_file='data/2022-06-01_to_2022-12-31.pickle', news_window=2,
+                                demographics=demographics)
+    #dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=2)
+    #test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2)
 
     # print(newsData)
     model = BERT_RNN_FC_Model()
@@ -50,7 +56,7 @@ if __name__ == "__main__":
                 sentence += news + " "
             #sentence = sentence[:5000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
-            outputs = model.forward(indexed_tokens, segments_ids)
+            outputs = model.forward(indexed_tokens, segments_ids, [X[demographic] for demographic in demographics])
             loss = criterion(outputs.squeeze(), y.float()) ## missing label here
             loss.backward()
             optimizer.step()
@@ -65,7 +71,7 @@ if __name__ == "__main__":
             indexed_tokens, segments_ids = tokenIdx(sentence)
             o = model(indexed_tokens, segments_ids)
             all_output_test.append(o[0].item())
-        print("R2 score: ", r2_score(all_labels_test, all_output_test))
+        print("R2 score: ", mean_squared_error(all_labels_test, all_output_test))
 
         
 

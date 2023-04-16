@@ -8,9 +8,11 @@ from transformers import BertModel, BertTokenizer
 # Load pre-trained model tokenizer (vocabulary)
 
 class BERT_RNN_FC_Model(nn.Module):
-    def __init__(self):
+    def __init__(self, demographics=[]):
         super(BERT_RNN_FC_Model, self).__init__()
         
+        self.demographics = demographics
+
         # Load BERT model and tokenizer
         self.bert = BertModel.from_pretrained('bert-base-uncased')
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -19,9 +21,23 @@ class BERT_RNN_FC_Model(nn.Module):
         self.rnn = nn.RNN(input_size=768, hidden_size=128, num_layers=1, batch_first=True)
         
         # Define fully connected layer
-        self.fc = nn.Linear(128, 1)
+        fc_input_size = 128
+
+        if('SEX' in self.demographics):
+            fc_input_size +=2
         
-    def forward(self, input_ids, attention_mask):
+        if('MARRY' in self.demographics):
+            fc_input_size +=5
+        
+        if('REGION' in self.demographics):
+            fc_input_size +=4
+            
+        if('EDUC' in self.demographics):
+            fc_input_size +=7
+
+        self.fc = nn.Linear(fc_input_size, 1)
+        
+    def forward(self, input_ids, attention_mask, demographics_tensor_list=[]):
         # Pass input through BERT model to get output vectors
         start = 0
         end = 512
@@ -45,6 +61,25 @@ class BERT_RNN_FC_Model(nn.Module):
         rnn_input = torch.stack(bert_outputs).squeeze(0)
         # Pass output vectors through RNN layer
         rnn_output, _ = self.rnn(rnn_input)
+
+        #add the demographics info (if any) beofre passing it to the ann layer
+        idx = 0
+        if('SEX' in self.demographics):
+            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('MARRY' in self.demographics):
+            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('REGION' in self.demographics):
+            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+            
+        if('EDUC' in self.demographics):
+            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+
         # Pass final output of RNN layer through fully connected layer to get prediction
         prediction = self.fc(rnn_output[-1, :, :])        
         return prediction
