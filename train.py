@@ -12,7 +12,7 @@ np.random.seed(577)
 
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split
-# from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score
 from arch import *
 import os
 from utils import *
@@ -65,7 +65,7 @@ if __name__ == "__main__":
             indexed_tokens, segments_ids = tokenIdx(sentence)
             o = model(indexed_tokens, segments_ids)
             all_output_test.append(o[0].item())
-        # print("R2 score: ", r2_score(all_labels_test, all_output_test))
+        print("R2 score: ", r2_score(all_labels_test, all_output_test))
 
         
 
