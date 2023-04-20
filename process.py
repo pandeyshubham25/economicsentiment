@@ -55,7 +55,7 @@ def get_name(demographics):
     return fname+".csv"
 
 
-def generate_data(demographics = [], start="2020-01-01", end="2022-05-31"):
+def generate_data(train=True, demographics = [], start="2020-01-01", end="2022-05-31"):
     df = pd.read_csv("surveydata/survey_subset.csv")
     # Filter the DataFrame based on the date range
     df = df[df['YYYYMM'] >= int(start[:4]+start[5:7])]
@@ -69,14 +69,15 @@ def generate_data(demographics = [], start="2020-01-01", end="2022-05-31"):
     
     groub_by_cols = ['YYYYMM']+demographics
     df_agg = df.groupby(groub_by_cols)[['GOVT', 'HOM', 'PAGO']].mean()
-    df_agg = df_agg.reset_index().astype(str)
-
-    print(df_agg['GOVT'].min(), df_agg['GOVT'].max())
-    print(df_agg['HOM'].min(), df_agg['HOM'].max())
-    print(df_agg['PAGO'].min(), df_agg['PAGO'].max())
     
+    df_agg = df_agg.reset_index()
 
-    return df_agg
+    #TODO: make this more generic
+    df_agg['GOVT'] = df_agg['GOVT']/4.223021582733813
+    df_agg['HOM'] = df_agg['HOM']/4.45646437994723
+    df_agg['PAGO'] = df_agg['PAGO']/4.5075
+    
+    return df_agg.astype(str)
     #df_agg.to_csv(get_name(demographics))
 
 
