@@ -16,7 +16,8 @@ class BERT_RNN_FC_Model(nn.Module):
         # Load BERT model and tokenizer
         self.bert = BertModel.from_pretrained('bert-base-uncased')
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        
+        # for param in self.bert.parameters():
+            # param.requires_grad = False
         # Define RNN layer
         self.rnn = nn.RNN(input_size=768, hidden_size=128, num_layers=1, batch_first=True)
         

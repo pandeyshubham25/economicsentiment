@@ -54,7 +54,7 @@ if __name__ == "__main__":
             sentence = ""
             for news,_ in X["news"]:
                 sentence += news + " "
-            #sentence = sentence[:5000]
+            sentence = sentence[:5000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
             outputs = model.forward(indexed_tokens, segments_ids, [X[demographic] for demographic in demographics])
             loss = criterion(outputs.squeeze(), y.float()) ## missing label here
