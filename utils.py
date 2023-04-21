@@ -58,7 +58,7 @@ class NewsDataset(Dataset):
             self.end = end
 
         #prepare the survey data
-        self.survey_df = generate_data(demographics, self.start, self.end)      
+        self.survey_df = generate_data(demographics=demographics, start=self.start, end=self.end)      
 
         #if news pickle file name has been provided
         if pickled_news_file is not None:

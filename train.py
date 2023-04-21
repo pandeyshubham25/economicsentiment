@@ -27,14 +27,25 @@ torch.set_default_tensor_type(torch.FloatTensor)
 torch.manual_seed(577)
 torch_device = torch.device("cpu")
 
+import torch
+
+class MSLELoss(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, y_pred, y_true):
+        return torch.mean(torch.log1p((y_pred - y_true)**2))
 
 if __name__ == "__main__":
     #demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
-    demographics = ['SEX']
+    demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
     dataloader = NewsDataset(pickled_news_file='data/2020-01-01_to_2022-05-31.pickle', news_window=2,
                              demographics=demographics)
+    print("loaded training data")
     test_dataloader = NewsDataset(pickled_news_file='data/2022-06-01_to_2022-12-31.pickle', news_window=2,
                                 demographics=demographics)
+    
+    print("loaded testing data")
     #dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=2)
     #test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2)
 
@@ -45,7 +56,7 @@ if __name__ == "__main__":
     batch_size = 32
     bert_maximum = 512
 
-    criterion = nn.MSELoss() ### mean squared error
+    criterion = MSLELoss() 
     optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(num_epochs):
         for i in range(dataloader.__len__()):
@@ -54,6 +65,7 @@ if __name__ == "__main__":
             sentence = ""
             for news,_ in X["news"]:
                 sentence += news + " "
+
             sentence = sentence[:5000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
             outputs = model.forward(indexed_tokens, segments_ids, [X[demographic] for demographic in demographics])
@@ -63,15 +75,27 @@ if __name__ == "__main__":
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
               .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
 
-        all_labels_test = []    
-        all_output_test = []
+        true_label = []    
+        predicted_label = []
         for i in range(test_dataloader.__len__()):
             X,label = test_dataloader.__getitem__(i)
-            all_labels_test.append(label.item())
+            true_label.append(label.item())
+            sentence = ""
+            for news,_ in X["news"]:
+                sentence += news + " "
+            sentence = sentence[:50000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
             o = model(indexed_tokens, segments_ids)
-            all_output_test.append(o[0].item())
-        print("R2 score: ", mean_squared_error(all_labels_test, all_output_test))
+            predicted_label.append(o[0].item())
+        
+        print("############### TESTING ###################")
+        print(len(true_label))
+        print(true_label)
+        print(predicted_label)
+        print(sum(abs(a - b) for a, b in zip(true_label, predicted_label)))
+        
+            
+        #print("mean squared error : ", mean_squared_error(true_label, predicted_label))
 
         
 
