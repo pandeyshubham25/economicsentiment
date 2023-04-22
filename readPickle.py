@@ -20,8 +20,6 @@ import json
 #         with open(pickled_news_file, 'rb') as f:
 #             self.all_news=pickle.load(f)
 
-picklefile = "data/2019-01-01_to_2019-03-01_governemnt.pickle"
-
 # demographic_vals = {
 #     'SEX': ['1','2'],
 #     'MARRY': ['1', '3', '4', '5', ' '],
@@ -45,29 +43,25 @@ picklefile = "data/2019-01-01_to_2019-03-01_governemnt.pickle"
 def readPickle(picklefile):
     with open(picklefile, 'rb') as f:
         return pickle.load(f)
-
-def getBertEmbedding(picklefile):
-            model = BertModel.from_pretrained('bert-base-uncased')
-            tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    
+model = BertModel.from_pretrained('bert-base-uncased')
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+def getBertEmbedding(picklefile, directory):
+            print("processing ", picklefile)
+            
             all_news = readPickle(picklefile)
             bert_maxsize = 510
-            # print(all_news)
-            monthlyNews = defaultdict(list)
             #print(all_news.keys())
             for month in all_news:
-                #print(month)
+                print(month)
                 news = all_news[month][0] #### all_news is a dictionary with key as month and value as a list of tuple (news,date)
                 # print(all_news[month])
                 # print(news)
                 count, sumtotal = 0, 0
                 text = ""
                 n = len(all_news[month])
-                
-                for news,date in all_news[month]:
-                    
-                    count += 1
-                    
-                    if count > 20: break
+                result = []
+                for news,_ in all_news[month]:
                     tokenCount = len(tokenizer.convert_tokens_to_ids(tokenizer.tokenize(news)))
                     # tokenizer.convert_tokens_to_ids(tokenized_text)
 
@@ -76,7 +70,7 @@ def getBertEmbedding(picklefile):
                         tokenized_text = tokenizer.tokenize(marked_text)
                         indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
                         segments_ids = [1] * len(tokenized_text[:512])
-                        monthlyNews[month].append(model(input_ids = torch.tensor([indexed_tokens[:512]]), attention_mask=torch.tensor([segments_ids]))[1])
+                        result.append(model(input_ids = torch.tensor([indexed_tokens[:512]]), attention_mask=torch.tensor([segments_ids]))[1])
                         text = news
                         sumtotal = tokenCount
                         #print(count, n)
@@ -84,20 +78,21 @@ def getBertEmbedding(picklefile):
                         sumtotal += tokenCount
                         text = text + news
 
-                    
-            question = picklefile.split("_")[4]
-            for month in monthlyNews: ### the key is month and value is a list of list of indexed_tokens and segments_ids
-
-                filename = directory+ "/" + question + "/" + month + ".torch"
-                print(filename)
-                continue
-                rnn_input = torch.stack(monthlyNews[month]).squeeze(0)
+                print(picklefile)
+                print(len(result))
+                question = picklefile.split("_")[3].split(".")[0]
+                file_dir = directory + question + "/"
+                if not os.path.exists(file_dir):
+                    os.makedirs(file_dir)
+                filename =  file_dir+month + ".torch"
+                rnn_input = torch.stack(result)
                 torch.save(rnn_input, filename)
 
-        
 def process_cap(directory):
     for picklefile in os.listdir(directory):
+        if not picklefile.endswith(".pickle"):
+            continue
         print(picklefile)
-        getBertEmbedding(directory+"/"+picklefile)
+        getBertEmbedding(directory+picklefile, directory)
 
 process_cap("data/cap4/")
