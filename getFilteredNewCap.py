@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 import pickle
+import argparse
 
 import json
 import nltk
@@ -12,6 +13,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 import re
+
+foldername = "cap4"
+
 def contains_keyword(s, keywords):
     s = s.lower()
     for keyword in keywords:
@@ -40,7 +44,7 @@ def processTokens(sentence, lemma=True, stemming = False, stopw = False):
 
 
     return " ".join(tokens)    
-def getFilteredNewsCap4(startDate, endDate, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = []):
+def getFilteredNewsCap(startDate, endDate, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = [], capnum = 4):
     # print("################## starting to read news ##################")
     finalOutput = {}
     daynewsCount = defaultdict(int)
@@ -49,14 +53,14 @@ def getFilteredNewsCap4(startDate, endDate, lemma=True, stemming = False, stopw 
     
     # print("################## finished reading news ##################")
     for newsDate in data:
-        if daynewsCount[newsDate] > 4:
+        if daynewsCount[newsDate] >= capnum:
             continue
         if startDate <= newsDate <= endDate:
             key = newsDate[:-3] ## it gets the year and month
             print(key)
             sentences = data[newsDate]
             for sentence in sentences:
-                if daynewsCount[newsDate] > 4:
+                if daynewsCount[newsDate] >= capnum:
                     break
                 if len(keywords) != 0: ### there are keywords that needs to be filtered
                     if contains_keyword(sentence, keywords):
@@ -71,8 +75,8 @@ def getFilteredNewsCap4(startDate, endDate, lemma=True, stemming = False, stopw 
                         finalOutput[key]=[]
                     finalOutput[key].append((sentence, newsDate))
                     daynewsCount[newsDate] += 1
-            print(daynewsCount[newsDate])
-            print(finalOutput[key])
+            # print(daynewsCount[newsDate])
+            # print(finalOutput[key])
                 
     return finalOutput
 
@@ -83,44 +87,20 @@ keywords_dict["HOM"] = ["home", "house", "mortgage", "rent", "interest rates", "
 keywords_dict["PAGO"] = ["jobs", "inflation", "unemployment", "employment", "job market", "job growth", "job creation", "job loss", "job losses", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings", "job openings"]    
 
 start = "2019-01-01"
-end = "2022-05-31"
+end = "2022-12-31"
 
-start_test = "2022-06-01"
-end_test = "2022-12-31"
-keywords = keywords_dict["GOVT"]
-FilteredNewsCap4 = getFilteredNewsCap4(start, end, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
+question_list = ["GOVT", "HOM", "PAGO"]
 
+def createPickles(capnum=4):
+    foldername="cap"+str(capnum) + "/"
+    if not os.path.exists("data/"+foldername):
+        os.makedirs("data/"+foldername)
+    for question in question_list:
+        keywords = keywords_dict[question]
+        FilteredNewsCap = getFilteredNewsCap(start, end, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
 
+        with open("data/"+ foldername + start+"_to_"+ end + "_" + question  + ".pickle", 'wb') as f:
+                pickle.dump(FilteredNewsCap, f)
 
-
-with open("data/"+ start+"_to_"+ end +"_" + keywords[0] + "_train" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
-
-FilteredNewsCap4 = getFilteredNewsCap4(start_test, end_test, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
-
-with open("data/"+ start_test+"_to_"+ end_test +"_" + keywords[0] + "_test" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
-# keywords = keywords_dict["HOM"]
-# keywords = keywords_dict["PAGO"]
-
-
-keywords = keywords_dict["HOM"]
-
-with open("data/"+ start+"_to_"+ end +"_" + keywords[0] + "_train" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
-
-FilteredNewsCap4 = getFilteredNewsCap4(start_test, end_test, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
-
-with open("data/"+ start_test+"_to_"+ end_test +"_" + keywords[0] + "_test" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
-
-
-keywords = keywords_dict["PAGO"]
-
-with open("data/"+ start+"_to_"+ end +"_" + keywords[0] + "_train" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
-
-FilteredNewsCap4 = getFilteredNewsCap4(start_test, end_test, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
-
-with open("data/"+ start_test+"_to_"+ end_test +"_" + keywords[0] + "_test" + "_cap4" + ".pickle", 'wb') as f:
-        pickle.dump(FilteredNewsCap4, f)
+if __name__ == "__main__":
+    createPickles(capnum=4)
