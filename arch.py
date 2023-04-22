@@ -137,7 +137,7 @@ class ANN(nn.Module):
         fc1_act = self.relu1(fc1_out)
         fc2_out = self.fc2(fc1_act)
         fc2_act = self.relu2(fc2_out)
-        prediction = self.sigmoid(self.fc3(fc2_act))
+        prediction = self.fc3(fc2_act)
         
         return prediction
 # def getBertEmbedding(sentence):

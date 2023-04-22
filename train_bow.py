@@ -49,8 +49,8 @@ class CustomLoss(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    #demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
-    demographics = ['SEX']
+    demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
+    #demographics = ['SEX']
     dataloader = NewsDataset(pickled_news_file='data/2020-01-01_to_2022-05-31.pickle', news_window=2,
                              demographics=demographics, vocab=None, idf=False, metric='PAGO')
     print("loaded training data")
@@ -63,24 +63,33 @@ if __name__ == "__main__":
 
     # print(newsData)
     model = ANN(input_dim = len(dataloader.vocab), hidden_dim= 15, output_dim= 1, demographics = demographics)
-    lr = 0.0001
+    lr = 0.001
     num_epochs = 20
 
 
-    criterion = CustomLoss() 
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.MSELoss()
+    # criterion = CustomLoss() 
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.001)
 
     for epoch in range(num_epochs):
         
+        true_label = []    
+        predicted_label = []
         for i in range(dataloader.__len__()):
             X,y = dataloader.__getitem__(i)
+            true_label.append(y.item())
             optimizer.zero_grad()
             outputs = model.forward(X["news"], [X[demographic] for demographic in demographics])
+            predicted_label.append(outputs[0].item())
             loss = criterion(outputs.squeeze(), y.float()) ## missing label here
             loss.backward()
             optimizer.step()
+            '''
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
               .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
+            '''
+        print("training error : ")
+        print(mean_squared_error(true_label, predicted_label))    
        
         true_label = []    
         predicted_label = []
@@ -89,8 +98,8 @@ if __name__ == "__main__":
             true_label.append(label.item())
             o = model(X["news"], [X[demographic] for demographic in demographics])
             predicted_label.append(o[0].item())
-        print("testing average error : ")
-        print(mean_squared_log_error(true_label, predicted_label))
+        print("testing error : ")
+        print(mean_squared_error(true_label, predicted_label))
         
             
         #print("mean squared error : ", mean_squared_error(true_label, predicted_label))
