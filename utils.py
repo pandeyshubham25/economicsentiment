@@ -104,7 +104,7 @@ def getEmbeddingFromJson(month):
     return embedding
 #teting code
 
-print(getEmbeddingFromJson("2019-01"))
+# print(getEmbeddingFromJson("2019-01"))
 keywords_dict = {}
 keywords_dict["GOVT"] = ["governemnt", "trump", "biden", "election", "president", "congress", "senate", "democrat", "republican", "political party", "political parties", "political ideology", "political beliefs", "political views", "political views", "political system", \
                         "political system", "hilary", "clinton", "bernie", "sanders", "democratic", "republican", "democratic party", "republican party", "democratic nominee", "republican nominee", "democrat", "republican", "dem"]
