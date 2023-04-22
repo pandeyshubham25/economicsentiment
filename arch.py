@@ -68,25 +68,78 @@ class BERT_RNN_FC_Model(nn.Module):
         #add the demographics info (if any) beofre passing it to the ann layer
         idx = 0
         if('SEX' in self.demographics):
-            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            rnn_output = torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
             idx+=1
         
         if('MARRY' in self.demographics):
-            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            rnn_output = torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
             idx+=1
         
         if('REGION' in self.demographics):
-            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            rnn_output = torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
             idx+=1
             
         if('EDUC' in self.demographics):
-            torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
+            rnn_output = torch.cat((rnn_output, demographics_tensor_list[idx]), dim=0)
             idx+=1
 
         # Pass final output of RNN layer through fully connected layer to get prediction
         prediction = self.fc(rnn_output[-1, :, :])        
         return prediction
+    
 
+
+class ANN(nn.Module):
+    def __init__(self,  input_dim, hidden_dim, output_dim, demographics=[]):
+        super(ANN, self).__init__()
+        self.demographics = demographics
+        
+        if('SEX' in self.demographics):
+            input_dim +=2
+        
+        if('MARRY' in self.demographics):
+            input_dim +=5
+        
+        if('REGION' in self.demographics):
+            input_dim +=4
+            
+        if('EDUC' in self.demographics):
+            input_dim +=7
+        
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(hidden_dim, output_dim)
+
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x, demographics_tensor_list = []):
+        #add the demographics info (if any) beofre passing it to the ann layer
+        ann_input = x
+        idx = 0
+        if('SEX' in self.demographics):
+            ann_input = torch.cat((ann_input, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('MARRY' in self.demographics):
+            ann_input = torch.cat((ann_input, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('REGION' in self.demographics):
+            ann_input = torch.cat((ann_input, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+            
+        if('EDUC' in self.demographics):
+            ann_input = torch.cat((ann_input, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        fc1_out = self.fc1(ann_input)
+        fc1_act = self.relu1(fc1_out)
+        fc2_out = self.fc2(fc1_act)
+        fc2_act = self.relu2(fc2_out)
+        prediction = self.sigmoid(self.fc3(fc2_act))
+        
+        return prediction
 # def getBertEmbedding(sentence):
 # # Load pre-trained BERT model and tokenizer
 #     model = BertModel.from_pretrained('bert-base-uncased')

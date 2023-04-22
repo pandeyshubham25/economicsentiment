@@ -43,7 +43,7 @@ class NewsDataset(Dataset):
     #pickle: True when you want to generate news dictionary and pickle it
     def __init__(self, demographics=[], 
                 lemma=True, stemming = False, stopw = False, keywords=[], news_window = 1, metric = "GOVT",
-                pickled_news_file=None, start="2020-01-01", end="2022-12-31", vocab = None):
+                pickled_news_file=None, start="2020-01-01", end="2022-12-31", vocab = None, df_dict=None, idf=True):
         #save imporant parameters
         self.demographics = demographics
         self.news_window = news_window
@@ -82,19 +82,27 @@ class NewsDataset(Dataset):
         
         #if vocab is None then build the vocab (train) else use the vocab (test)
         v_index = 0
+        # use this flag to know if we are dealing with train or test 
+        train=False
         if vocab is None:
-            for k,v in self.all_news:
-                for word in v[0].split():
-                    if word not in self.vocab:
-                        self.vocab[word]=v_index
-                        v_index+=1
+            train=True
+            for k,v in self.all_news.items():
+                for article,_ in v:
+                    for word in article.split():
+                        if word not in self.vocab:
+                            self.vocab[word]=v_index
+                            v_index+=1
         else:
             self.vocab = vocab
         
         prev=None
 
         #df_dict records the number of documents each word appears in
-        self.df_dict = [0]*len(self.vocab)
+        #if it is a trainig data, we construct df_dict, for test we just use the one from training data
+        if train:
+            self.df_dict = [0]*len(self.vocab)
+        else:
+            self.df_dict = df_dict
 
         #tf_dict records the term frequencies list for each document
         self.tf_dict = {}
@@ -104,19 +112,19 @@ class NewsDataset(Dataset):
                 prev=base_month
 
                 months = self.get_month_strings(base_month, self.news_window)
-                current_news = ""
 
                 #current_counts tracks the term frequencies for each word in curent doc
                 current_counts = [0]*len(self.vocab)
-                for month in months:
-                    current_news+=self.all_news[month]
-                
                 local_dict = {}
-                for word in current_news.split(" "):
-                    current_counts[self.vocab[word]]+=1
-                    if word not in local_dict:
-                        self.df_dict[self.vocab[word]]+=1
-                        local_dict[word]=1
+                for month in months:
+                    for article,_ in self.all_news[month]:
+                        for word in article.split():
+                            if not train and word in self.vocab:
+                                current_counts[self.vocab[word]]+=1
+                            # we only update df_dict if it is training data, for test data, we use df dict from train dataloader
+                            if word not in local_dict and train:
+                                self.df_dict[self.vocab[word]]+=1
+                                local_dict[word]=1
             
                 self.tf_dict[base_month]=current_counts
         
@@ -124,8 +132,8 @@ class NewsDataset(Dataset):
         N = len(self.tf_dict)
         for k,v in self.tf_dict.items():
             for i in range(len(self.vocab)):
-                self.tf_dict[k][i]= self.tf_dict[k][i]*log2(N/self.df_dict[i])
-        
+                if self.df_dict[i]!=0:
+                    self.tf_dict[k][i]= self.tf_dict[k][i]*log2(N/self.df_dict[i])
     
     def __len__(self):
         return len(self.survey_df)
@@ -136,7 +144,7 @@ class NewsDataset(Dataset):
             X[demographic] = self.process_demographic(demographic, self.survey_df.iloc[idx][demographic])
 
         base_month = self.survey_df.iloc[idx]['YYYYMM'][:4]+"-"+self.survey_df.iloc[idx]['YYYYMM'][4:6]
-        X["news"] = self.tf_dict[base_month]
+        X["news"] = torch.tensor(self.tf_dict[base_month])
 
         y = self.survey_df.iloc[idx][self.metric]
         return (X,tensor(float(y)))
