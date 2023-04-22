@@ -12,7 +12,7 @@ np.random.seed(577)
 
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, mean_squared_log_error
 from arch import *
 import os
 from utils import *
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     #test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2)
 
     # print(newsData)
-    model = BERT_RNN_FC_Model()
+    model = BERT_RNN_FC_Model(demographics)
     lr = 0.001
     num_epochs = 20
     batch_size = 32
@@ -85,16 +85,12 @@ if __name__ == "__main__":
                 sentence += news + " "
             sentence = sentence[:50000]
             indexed_tokens, segments_ids = tokenIdx(sentence)
-            o = model(indexed_tokens, segments_ids)
+            o = model(indexed_tokens, segments_ids,  [X[demographic] for demographic in demographics])
             predicted_label.append(o[0].item())
         
-        print("############### TESTING ###################")
-        print(len(true_label))
-        print(true_label)
-        print(predicted_label)
-        print(sum(abs(a - b) for a, b in zip(true_label, predicted_label)))
-        
-            
+        print("testing average error : ")
+        print(mean_squared_log_error(true_label, predicted_label))
+         
         #print("mean squared error : ", mean_squared_error(true_label, predicted_label))
 
         
