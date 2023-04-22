@@ -108,7 +108,7 @@ class BERT_RNN_FC_Model(nn.Module):
 
 def tokenIdx(sentence):
     tokenizer2 = BertTokenizer.from_pretrained('bert-base-uncased')
-
+    
     text = sentence
     marked_text = "[CLS] " + text + " [SEP]"
 
@@ -118,6 +118,7 @@ def tokenIdx(sentence):
 
     segments_ids = [1] * len(tokenized_text)
 
+    print(len(indexed_tokens))
     return torch.tensor([indexed_tokens]), torch.tensor([segments_ids])
 
 ## why are they going to run when I import this file?

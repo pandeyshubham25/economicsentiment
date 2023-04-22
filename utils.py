@@ -58,7 +58,7 @@ class NewsDataset(Dataset):
             self.end = end
 
         #prepare the survey data
-        self.survey_df = generate_data(demographics=demographics, start=self.start, end=self.end)      
+        self.survey_df = generate_data(demographics = demographics, start = self.start, end = self.end)      
 
         #if news pickle file name has been provided
         if pickled_news_file is not None:
@@ -98,7 +98,13 @@ class NewsDataset(Dataset):
         y = self.survey_df.iloc[idx][self.metric]
         return (X,tensor(float(y)))
 
+def getEmbeddingFromJson(month):
+
+    embedding = torch.load(month)
+    return embedding
 #teting code
+
+print(getEmbeddingFromJson("2019-01"))
 keywords_dict = {}
 keywords_dict["GOVT"] = ["governemnt", "trump", "biden", "election", "president", "congress", "senate", "democrat", "republican", "political party", "political parties", "political ideology", "political beliefs", "political views", "political views", "political system", \
                         "political system", "hilary", "clinton", "bernie", "sanders", "democratic", "republican", "democratic party", "republican party", "democratic nominee", "republican nominee", "democrat", "republican", "dem"]

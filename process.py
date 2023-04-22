@@ -55,7 +55,7 @@ def get_name(demographics):
     return fname+".csv"
 
 
-def generate_data(train=True, demographics = [], start="2020-01-01", end="2022-05-31"):
+def generate_data(demographics = [], start="2020-01-01", end="2022-05-31"):
     df = pd.read_csv("surveydata/survey_subset.csv")
     # Filter the DataFrame based on the date range
     df = df[df['YYYYMM'] >= int(start[:4]+start[5:7])]
@@ -66,7 +66,7 @@ def generate_data(train=True, demographics = [], start="2020-01-01", end="2022-0
     df['HOM'] = df['HOM'].apply(lambda x: Q2dict[x])
     df['PAGO'] = df['PAGO'].apply(lambda x: Q3dict[x])
 
-    
+    print(demographics)
     groub_by_cols = ['YYYYMM']+demographics
     df_agg = df.groupby(groub_by_cols)[['GOVT', 'HOM', 'PAGO']].mean()
     
