@@ -145,10 +145,13 @@ class ANN(nn.Module):
     
 
 class RNN_FC_Model(nn.Module):
-    def __init__(self, demographics=[]):
+    def __init__(self, demographics=[], sequence_lim=None):
         super(RNN_FC_Model, self).__init__()
         
         self.demographics = demographics
+
+        #if the sequence lenght is greater than this, then peform averaging
+        self.sequence_lim=sequence_lim
 
         # Define RNN layer
         self.rnn = nn.RNN(input_size=768, hidden_size=128, num_layers=1, batch_first=True)
@@ -171,6 +174,10 @@ class RNN_FC_Model(nn.Module):
         self.fc = nn.Linear(fc_input_size, 1)
         
     def forward(self, rnn_input, demographics_tensor_list=[]):
+        if self.sequence_lim is not None and rnn_input.size()[0]>self.sequence_lim:
+            chunks = torch.chunk(rnn_input, self.sequence_lim, dim=0)
+            rnn_input = torch.stack([torch.mean(chunk, dim=0) for chunk in chunks])
+        
         rnn_output, _ = self.rnn(rnn_input)
         rnn_output = rnn_output[-1::].squeeze(0).squeeze(0)
         #add the demographics info (if any) beofre passing it to the ann layer
@@ -195,6 +202,68 @@ class RNN_FC_Model(nn.Module):
         prediction = self.fc(rnn_output)        
         return prediction
     
+
+import torch
+import torch.nn as nn
+
+class LSTM_FC_Model(nn.Module):
+    def __init__(self, demographics=[], sequence_lim=None):
+        super(LSTM_FC_Model, self).__init__()
+        
+        self.demographics = demographics
+
+        #if the sequence length is greater than this, then perform averaging
+        self.sequence_lim=sequence_lim
+
+        # Define LSTM layer
+        self.lstm = nn.LSTM(input_size=768, hidden_size=128, num_layers=1, batch_first=True)
+        
+        # Define fully connected layer
+        fc_input_size = 128
+
+        if('SEX' in self.demographics):
+            fc_input_size +=2
+        
+        if('MARRY' in self.demographics):
+            fc_input_size +=5
+        
+        if('REGION' in self.demographics):
+            fc_input_size +=4
+            
+        if('EDUC' in self.demographics):
+            fc_input_size +=7
+
+        self.fc = nn.Linear(fc_input_size, 1)
+        
+    def forward(self, lstm_input, demographics_tensor_list=[]):
+        if self.sequence_lim is not None and lstm_input.size()[0]>self.sequence_lim:
+            chunks = torch.chunk(lstm_input, self.sequence_lim, dim=0)
+            lstm_input = torch.stack([torch.mean(chunk, dim=0) for chunk in chunks])
+        
+        lstm_output, _ = self.lstm(lstm_input)
+        lstm_output = lstm_output[-1::].squeeze(0).squeeze(0)
+        #add the demographics info (if any) before passing it to the ann layer
+        idx = 0
+        if('SEX' in self.demographics):
+            lstm_output = torch.cat((lstm_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('MARRY' in self.demographics):
+            lstm_output = torch.cat((lstm_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+        
+        if('REGION' in self.demographics):
+            lstm_output = torch.cat((lstm_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+            
+        if('EDUC' in self.demographics):
+            lstm_output = torch.cat((lstm_output, demographics_tensor_list[idx]), dim=0)
+            idx+=1
+
+        # Pass final output of LSTM layer through fully connected layer to get prediction
+        prediction = self.fc(lstm_output)        
+        return prediction
+
 
 
 

@@ -40,7 +40,7 @@ class NewsDataset(Dataset):
     #news_window = 1 means only current month is considered
     #picked_news: when you have the dictionary for a given date range pickled
     #pickle: True when you want to generate news dictionary and pickle it
-    def __init__(self, start="", end="", demographics=[], news_window = 1, metric = "GOVT"):
+    def __init__(self, start="", end="", demographics=[], news_window = 1, metric = "GOVT", tensor_dir="cap4"):
         #save imporant parameters
         self.demographics = demographics
         self.news_window = news_window
@@ -63,7 +63,7 @@ class NewsDataset(Dataset):
                 months = self.get_month_strings(base_month, self.news_window)
 
                 for month in months:
-                    file_name = "data/cap4/"+metric+"/"+month+".torch"
+                    file_name = "data/" + tensor_dir +"/"  +metric+"/"+month+".torch"
                     cur_tensor = torch.load(file_name)
                     cur_result.append(cur_tensor)
                 

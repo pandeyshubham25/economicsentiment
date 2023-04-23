@@ -36,27 +36,30 @@ class MSLELoss(torch.nn.Module):
         return torch.mean(torch.log1p((y_pred - y_true)**2))
 
 if __name__ == "__main__":
-    demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
-    #demographics = ['SEX', 'MARRY']
-    dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=2,
-                             demographics=demographics, metric="GOVT")
+    #demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
+    demographics = ['SEX', 'MARRY']
+    metric="GOVT"
+    tensor_dir = "cap1000"
+    news_window = 2
+    dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=news_window,
+                             demographics=demographics, metric=metric, tensor_dir=tensor_dir)
     print("loaded training data")
-    test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2,
-                                demographics=demographics, metric="GOVT")
+    test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=news_window,
+                             demographics=demographics, metric=metric, tensor_dir=tensor_dir)
     
     print("loaded testing data")
     #dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=2)
     #test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2)
 
     # print(newsData)
-    model = RNN_FC_Model(demographics).to(device)
+    model = LSTM_FC_Model(demographics=demographics, sequence_lim=50).to(device)
     lr = 0.001
     num_epochs = 20
     batch_size = 32
 
     criterion = MSLELoss() 
     #criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.00)
     for epoch in range(num_epochs):
         true_label = []    
         predicted_label = []
