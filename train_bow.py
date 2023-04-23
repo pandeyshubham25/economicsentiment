@@ -50,7 +50,7 @@ class CustomLoss(torch.nn.Module):
 
 if __name__ == "__main__":
     demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
-    #demographics = ['SEX']
+    demographics = ['SEX']
     dataloader = NewsDataset(pickled_news_file='data/2020-01-01_to_2022-05-31.pickle', news_window=2,
                              demographics=demographics, vocab=None, idf=False, metric='PAGO')
     print("loaded training data")

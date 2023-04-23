@@ -65,9 +65,6 @@ class NewsDataset(Dataset):
                 for month in months:
                     file_name = "data/cap4/"+metric+"/"+month+".torch"
                     cur_tensor = torch.load(file_name)
-                    print(cur_tensor.size())
-                    print(file_name)
-                    exit()
                     cur_result.append(cur_tensor)
                 
                 self.tensor_dict[base_month] = torch.cat(cur_result).squeeze(0)

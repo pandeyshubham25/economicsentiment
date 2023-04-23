@@ -9,6 +9,10 @@ import re
 from collections import defaultdict
 from transformers import BertModel, BertTokenizer
 import json
+
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 # class readPickle(Dataset):
 
 #     def __init__(self, demographics=[], 
@@ -44,7 +48,7 @@ def readPickle(picklefile):
     with open(picklefile, 'rb') as f:
         return pickle.load(f)
     
-model = BertModel.from_pretrained('bert-base-uncased')
+model = BertModel.from_pretrained('bert-base-uncased').to(device)
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 def getBertEmbedding(picklefile, directory):
             print("processing ", picklefile)
@@ -70,7 +74,10 @@ def getBertEmbedding(picklefile, directory):
                         tokenized_text = tokenizer.tokenize(marked_text)
                         indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
                         segments_ids = [1] * len(tokenized_text[:512])
-                        result.append(model(input_ids = torch.tensor([indexed_tokens[:512]]), attention_mask=torch.tensor([segments_ids]))[1])
+                        model_ip_ids = torch.tensor([indexed_tokens[:512]]).to(device)
+                        model_attention_mask = torch.tensor([segments_ids]).to(device)
+                        modelop = model(input_ids = model_ip_ids, attention_mask=model_attention_mask)[1]
+                        result.append(modelop.detach().cpu())
                         text = news
                         sumtotal = tokenCount
                         #print(count, n)
@@ -95,4 +102,4 @@ def process_cap(directory):
         print(picklefile)
         getBertEmbedding(directory+picklefile, directory)
 
-process_cap("data/cap4/")
+process_cap("data/cap1000/")

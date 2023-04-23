@@ -12,7 +12,7 @@ np.random.seed(577)
 
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split
-from sklearn.metrics import mean_squared_error, r2_score, mean_squared_log_error
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from arch import *
 import os
 from utils_bert import *
@@ -25,9 +25,8 @@ from getNews import getFilteredNews
 torch.set_default_tensor_type(torch.FloatTensor)
 # torch.use_deterministic_algorithms(True)
 torch.manual_seed(577)
-torch_device = torch.device("cpu")
-
 import torch
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 class MSLELoss(torch.nn.Module):
     def __init__(self):
@@ -37,8 +36,8 @@ class MSLELoss(torch.nn.Module):
         return torch.mean(torch.log1p((y_pred - y_true)**2))
 
 if __name__ == "__main__":
-    #demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
-    demographics = ['SEX']
+    demographics = ['SEX', 'MARRY', 'REGION', 'EDUC']
+    #demographics = ['SEX', 'MARRY']
     dataloader = NewsDataset(start="2020-01-01", end="2022-05-31", news_window=2,
                              demographics=demographics, metric="GOVT")
     print("loaded training data")
@@ -50,13 +49,13 @@ if __name__ == "__main__":
     #test_dataloader = NewsDataset(start="2022-06-01", end="2022-12-31", news_window=2)
 
     # print(newsData)
-    model = RNN_FC_Model(demographics)
+    model = RNN_FC_Model(demographics).to(device)
     lr = 0.001
     num_epochs = 20
     batch_size = 32
 
-    #criterion = MSLELoss() 
-    criterion = nn.MSELoss()
+    criterion = MSLELoss() 
+    #criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.001)
     for epoch in range(num_epochs):
         true_label = []    
@@ -65,16 +64,15 @@ if __name__ == "__main__":
             X,y = dataloader.__getitem__(i)
             true_label.append(y.item())
             optimizer.zero_grad()
-            outputs = model.forward(X["news"], [X[demographic] for demographic in demographics])
-            predicted_label.append(outputs[0].item())
+            outputs = model.forward(X["news"].to(device), [X[demographic].to(device) for demographic in demographics])
+            predicted_label.append(outputs[0].detach().cpu().item())
             loss = criterion(outputs.squeeze(), y.float()) ## missing label here
             loss.backward()
             optimizer.step()
-            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-              .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
+            #print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+            #  .format(epoch+1, num_epochs, i+1, dataloader.__len__(), loss.item()))
 
-        print("training error : ")
-        print(mean_squared_error(true_label, predicted_label))
+        train_error = mean_absolute_error(true_label, predicted_label)
 
         true_label = []    
         predicted_label = []
@@ -84,8 +82,8 @@ if __name__ == "__main__":
             o = model(X["news"],  [X[demographic] for demographic in demographics])
             predicted_label.append(o[0].item())
         
-        print("testing error : ")
-        print(mean_squared_error(true_label, predicted_label))
+        test_error = mean_absolute_error(true_label, predicted_label)
+        print("EPOCH: ", epoch+1, "Train error : ", train_error, " Test Error : ", test_error)
          
         #print("mean squared error : ", mean_squared_error(true_label, predicted_label))
 

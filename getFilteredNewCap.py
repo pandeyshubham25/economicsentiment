@@ -14,7 +14,6 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 import re
 
-foldername = "cap4"
 
 def contains_keyword(s, keywords):
     s = s.lower()
@@ -97,10 +96,10 @@ def createPickles(capnum=4):
         os.makedirs("data/"+foldername)
     for question in question_list:
         keywords = keywords_dict[question]
-        FilteredNewsCap = getFilteredNewsCap(start, end, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords)
+        FilteredNewsCap = getFilteredNewsCap(start, end, lemma=True, stemming = False, stopw = False, jsonFile = "data/newsAll.json", keywords = keywords, capnum=capnum)
 
         with open("data/"+ foldername + start+"_to_"+ end + "_" + question  + ".pickle", 'wb') as f:
                 pickle.dump(FilteredNewsCap, f)
 
 if __name__ == "__main__":
-    createPickles(capnum=4)
+    createPickles(capnum=1000)
