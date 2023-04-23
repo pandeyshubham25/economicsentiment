@@ -135,7 +135,6 @@ def getFilteredNews(startDate, endDate, lemma=True, stemming = False, stopw = Fa
                         if(key not in finalOutput):
                             finalOutput[key]=[]
                         finalOutput[key].append((sentence, newsDate))
-                        finalOutput.append((sentence, newsDate))
                 else: ### get every news that is in between starting and ending date
                     sentence = processTokens(sentence, lemma=lemma, stemming = stemming, stopw = stopw)
                     if(key not in finalOutput):
