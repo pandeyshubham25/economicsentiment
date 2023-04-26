@@ -66,16 +66,15 @@ def generate_data(demographics = [], start="2020-01-01", end="2022-05-31"):
     df['HOM'] = df['HOM'].apply(lambda x: Q2dict[x])
     df['PAGO'] = df['PAGO'].apply(lambda x: Q3dict[x])
 
-    print(demographics)
     groub_by_cols = ['YYYYMM']+demographics
     df_agg = df.groupby(groub_by_cols)[['GOVT', 'HOM', 'PAGO']].mean()
     
     df_agg = df_agg.reset_index()
 
     #TODO: make this more generic
-    df_agg['GOVT'] = df_agg['GOVT']/4.223021582733813
-    df_agg['HOM'] = df_agg['HOM']/4.45646437994723
-    df_agg['PAGO'] = df_agg['PAGO']/4.5075
+    #df_agg['GOVT'] = df_agg['GOVT']/4.223021582733813
+    #df_agg['HOM'] = df_agg['HOM']/4.45646437994723
+    #df_agg['PAGO'] = df_agg['PAGO']/4.5075
     
     return df_agg.astype(str)
     #df_agg.to_csv(get_name(demographics))
